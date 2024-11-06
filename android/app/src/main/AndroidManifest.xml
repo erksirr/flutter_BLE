@@ -4,17 +4,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
-
     <!-- Required for BLE scanning in newer Android versions (API 29 and above) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- Optional: Depending on the app, coarse location access may also be required -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />  
-    <uses-feature android:name="android.hardware.bluetooth" android:required="true" />
-    <!-- Bluetooth Low Energy (BLE) support -->
-    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
-<!-- New Bluetooth permissions in Android 12
-https://developer.android.com/about/versions/12/features/bluetooth-permissions -->
     <application
         android:label="fuckproject_"
         android:name="${applicationName}"

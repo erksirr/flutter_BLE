@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:fuckproject_/ble_controller.dart';
 import 'package:get/get.dart';
-import 'ble_controller.dart';
+// import 'package:permission_handler/permission_handler.dart';
 
 void main() {
   runApp(MyApp());
@@ -13,6 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'BLETEST',
       home: MyHomePage(),
     );
   }
@@ -26,12 +28,14 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final BleController controller = Get.put(BleController());
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('BLETEST')),
+      appBar: AppBar(title: const Text('BLETEST')),
       body: GetBuilder<BleController>(
-        init: BleController(),
         builder: (BleController controller) {
           return Center(
             child: Column(
@@ -46,25 +50,26 @@ class _MyHomePageState extends State<MyHomePage> {
                           itemCount: snapshot.data!.length,
                           itemBuilder: (context, index) {
                             final data = snapshot.data![index];
-                            // Debugging: Check advertisement data
-                            // print('Advertisement Data: ${data.advertisementData}');
                             return Card(
                               elevation: 2,
                               child: ListTile(
-                                title: Text(data.device.platformName.isNotEmpty
-                                    ? data.device.platformName
-                                    : "Unknown Device"),
+                                title: Text(data.device.name.isNotEmpty
+                                    ? data.device.name
+                                    : "-"),
                                 subtitle: Text(data.device.id.toString()),
                                 trailing: Text(data.rssi.toString()),
-                                onTap: ()=>controller.connectToDevice(data.device),
+                                onTap: () {
+                                  controller.connectToDevice(data.device);
+                                },
                               ),
                             );
                           },
                         );
-                      } else if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                      } else if (snapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
                       } else {
-                        return Center(child: Text("No Devices Found"));
+                        return const Center(child: Text("No Devices Found"));
                       }
                     },
                   ),
@@ -72,8 +77,16 @@ class _MyHomePageState extends State<MyHomePage> {
                 SizedBox(height: 10),
                 ElevatedButton(
                   onPressed: () => controller.scanDevices(),
-                  child: Text("SCAN"),
+                  child: const Text("SCAN"),
                 ),
+                if (controller.connectedDevice != null) ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      controller.disconnectDevice();
+                    },
+                    child: const Text("DISCONNECT"),
+                  ),
+                ],
               ],
             ),
           );
@@ -82,77 +95,32 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-// class BleExample extends StatefulWidget {
-//   @override
-//   _BleExampleState createState() => _BleExampleState();
-// }
 
-// class _BleExampleState extends State<BleExample> {
-//   BleController _bleController = BleController();
-//   List<ScanResult> _scanResults = [];
+// import 'package:flutter/material.dart';
+// import 'package:fuckproject_/ble_controller.dart';
 
-//   @override
-//   void initState() {
-//     super.initState();
-//     _bleController.initBle();
-//   }
+// void main() async {
+//   final hcareService = HCareService();
 
-//   @override
-//   void dispose() {
-//     _bleController.dispose();
-//     super.dispose();
-//   }
+//   // Initialize the service
+//   await hcareService.initialize();
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(title: Text('BLE Example')),
-//       body: ListView.builder(
-//         itemCount: _scanResults.length,
-//         itemBuilder: (context, index) {
-//           return ListTile(
-//             title: Text(_bleController.getBestDeviceName(_scanResults[index])),
-//             subtitle: Text('ID: ${_scanResults[index].device.id.toString()}\nRSSI: ${_scanResults[index].rssi} dBm'),
-//             trailing: Text('${_scanResults[index].rssi} dBm'),
-//             onTap: () => _connectToDevice(_scanResults[index].device),
-//           );
-//         },
-//       ),
-//       floatingActionButton: FloatingActionButton(
-//         onPressed: _startScan,
-//         child: Icon(Icons.search),
-//       ),
-//     );
-//   }
+//   // Connect to watch
+//   bool connected = await hcareService.connectToWatch();
+//   if (connected) {
+//     print('Successfully connected to HCare Go 5');
 
-//   void _startScan() async {
+//     // Get glucose readings
 //     try {
-//       setState(() => _scanResults = []);
-//       _scanResults = await _bleController.scanDevices();
-//       setState(() {});
-//     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error scanning: $e')),
-//       );
-//     }
-//   }
-
-//   void _connectToDevice(BluetoothDevice device) async {
-//     try {
-//       bool connected = await _bleController.connectToDevice(device);
-//       if (connected) {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Connected to ${device.name}')),
-//         );
-//       } else {
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           SnackBar(content: Text('Failed to connect to ${device.name}')),
-//         );
+//       List<GlucoseReading> readings = await hcareService.getGlucoseReadings();
+//       for (var reading in readings) {
+//         print(
+//             'Glucose: ${reading.value} ${reading.unit} at ${reading.timestamp}');
 //       }
 //     } catch (e) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         SnackBar(content: Text('Error connecting: $e')),
-//       );
+//       print('Error getting readings: $e');
 //     }
+//   } else {
+//     print('Failed to connect to watch');
 //   }
 // }
